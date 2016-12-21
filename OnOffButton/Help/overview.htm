@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+   <title>Overview</title>
+   <meta name="generator" content="Help & Manual">
+   <meta name="keywords" content="">
+</head>
+
+
+  <!-- Redirect browser to index page if page is not in the content frame.
+       This script is only valid for regular HTML export -->
+  <script language="JavaScript">
+       <!-- 
+           if(top.frames.length==0) top.location.href='index.html?overview.htm'
+       //-->
+  </script>
+
+
+<body bgcolor="#FFFFFF">
+
+
+<table width="100%" border="0" cellspacing="0" cellpadding="2" bgcolor="#C0C0C0">
+  <tr>
+    <td align="left">
+      
+<span style="font-family:Helvetica,Arial; font-size:12pt; color:#000000"><b>Overview
+<br>
+</b></span>
+    </td>
+    <td align="right">
+     <font face="Arial" size="2">
+     <a href="javaScript:parent.reDisplay('1.1',1,0)">Previous</a>&nbsp;
+     <a href="javaScript:parent.reDisplay('1.1',1,0)">Top</a>&nbsp;
+     
+     </font>
+    </td>
+  </tr>
+</table>
+<br>
+
+
+<span style="font-family:Helvetica,Arial; font-size:10pt; color:#000000">To use the button the file "OnOffButton.pbi" first needs to be copied to your project folder ready for inclusion in your project.
+<br>
+
+<br>
+Then add the line:-
+<br>
+
+<br>
+IncludeFile "OnOffButton.pbi"
+<br>
+
+<br>
+at the start of your programme.
+<br>
+
+<br>
+To use the button is as simple as using a normal Pure Basic button and follws the same rules.
+<br>
+
+<br>
+After using the OpenWindow() function simply add an OnOffbutton with the following line of code.
+<br>
+
+<br>
+OnOffButton(#OnOff1,10,10,90,25)
+<br>
+
+<br>
+Only the positional information is used the width and height are ignored. This will create an OnOffButton at the coordinates 10,10.
+<br>
+
+<br>
+You can set the original state of the button or change its state any time during programme execution by using the SetOnOffButtonState() Procedure. The example programme uses this to set the original state of the button after creation:-
+<br>
+
+<br>
+SetOnOffButtonState(#OnOff1,#True)
+<br>
+
+<br>
+This will show the button as "On" when run.
+<br>
+
+<br>
+You can also get the state of the button at anytime during programme execution by using the GetOnOffButtonState(Gadget.i) procedure where (Gadget.i) is replaced by the variable or constant used to create the button.
+<br>
+
+<br>
+Two events are reported by the button. These are:-
+<br>
+
+<br>
+#StateIsOn
+<br>
+#StateIsOff
+<br>
+
+<br>
+when the state of the button is changed by the programme user one of the events will be reported. These events are captured in your programme by using the EventData() function after selecting which gadget has raised the event  with Select EventGadget()  as below:-
+<br>
+
+<br>
+
+<br>
+Select EventGadget()
+<br>
+
+<br>
+        Case #OnOff1
+<br>
+
+<br>
+          Select EventData()
+<br>
+              
+<br>
+             Case OnOffButton::#StateIsOn
+<br>
+               Debug "Button 1 Is On"
+<br>
+              
+<br>
+             Case OnOffButton::#StateIsOff
+<br>
+               Debug "Button 1 Is Off" 
+<br>
+              
+<br>
+           EndSelect
+<br>
+
+<br>
+This is only a portion of code to see the full operation look at the example programme included.
+<br>
+</span>
+
+</body>
+</html>
