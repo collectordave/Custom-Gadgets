@@ -1,4 +1,8 @@
-﻿DeclareModule CustomGadget
+﻿;Resize.pbi needed to capture resize events
+
+XIncludeFile "Resize.pbi"
+
+DeclareModule CustomGadget
   
   ;{ ==Gadget Event Enumerations=================================
 ;        Name/title: Enumerations
@@ -23,8 +27,6 @@ EndDeclareModule
 Module CustomGadget
 
   ;The Main Gadget Structure
-  ;All Variables Used By The Gadget should Be Declared In This Structure
-  ;Variables Declared Out Of The Structure are not guaranteed
   Structure MyGadget
     Window_ID.i
     Gadget_ID.i
@@ -79,157 +81,7 @@ Module CustomGadget
     
     
   EndProcedure 
-    
-  Procedure IDGadget( GadgetID )
- ;{ ==Procedure Header Comment==============================
-;        Name/title: IDGadget
-;       Description: Part of custom gadget template
-;                  : Required to capture resize events of the gadget canvas
-; 
-; ====================================================
-;}    
      
-     
-     CompilerSelect #PB_Compiler_OS
-      CompilerCase #PB_OS_Windows
-        ProcedureReturn GetProp_( GadgetID, "PB_GadgetID") - 1
-       
-      CompilerCase #PB_OS_Linux
-        g_object_get_data_( GadgetID, "PB_GadgetID") - 1
-       
-    CompilerEndSelect
-  EndProcedure 
-    
-    CompilerSelect #PB_Compiler_OS
-    CompilerCase #PB_OS_Windows
-      Procedure Resize_CallBack(GadgetID, Msg, wParam, lParam)
-;{ ==Procedure Header Comment==============================
-;        Name/title: Resize_CallBack
-;       Description: Part of custom gadget template
-;                  : Required to capture resize events of the gadget canvas
-;                  : when running on windows
-; ====================================================
-;}           
-        Protected *Func = GetProp_( GadgetID, "Resize_Event_CallBack")
-       
-        Protected *Gadget = IDGadget( GadgetID )
-       
-        Protected *Window = GetActiveWindow() ; GetProp_( GadgetID, "PB_WindowID") - 1
-       
-        Select Msg
-          Case #WM_SIZE : PostEvent( #PB_Event_Gadget, *Window, *Gadget , #PB_EventType_Size )
-          Case #WM_MOVE : PostEvent( #PB_Event_Gadget, *Window, *Gadget , #PB_EventType_Move )
-          Default
-           
-            ProcedureReturn CallWindowProc_(*Func, GadgetID, Msg, wParam, lParam)
-        EndSelect
-       
-       
-      EndProcedure
-     
-    CompilerCase #PB_OS_Linux
-      ProcedureC Resize_CallBack( *Event.GdkEventAny, *Handle )
-  ;{ ==Procedure Header Comment==============================
-;        Name/title: Resize_CallBack
-;       Description: Part of custom gadget template
-;                  : Required to capture resize events of the gadget canvas
-;                  : when running on Linux
-; ====================================================
-;}       
-        Protected *Widget.GtkWidget = gtk_get_event_widget_(*Event)
-        ;Debug gdk_event_get_screen_ (*event)
-       
-        If *Widget
-          Debug PeekS( gtk_widget_get_name_( (*Widget)), -1, #PB_UTF8 ) + " " + Str(g_object_get_data_(*Widget, "PB_GadgetID") - 1)
-        EndIf
-       
-        If *Widget And *Widget = g_object_get_data_(*Widget, "Resize_Event_CallBack")
-          Select *Event\type
-            Case #GDK_2BUTTON_PRESS
-            Case #GDK_BUTTON_PRESS
-            Case #GDK_BUTTON_RELEASE
-            Case #GDK_ENTER_NOTIFY
-            Case #GDK_LEAVE_NOTIFY
-            Case #GDK_MOTION_NOTIFY
-            Case #GDK_SCROLL
-              Protected *scroll.GdkEventScroll = *Event
-              Select *scroll\state
-                Case #GDK_SCROLL_UP
-                  Debug "scrollUP"
-                Case #GDK_SCROLL_DOWN
-                  Debug "scrollDown"
-              EndSelect
-             
-            Case #GDK_KEY_PRESS
-            Case #GDK_KEY_RELEASE
-            Case #GDK_FOCUS_CHANGE
-            Case #GDK_CONFIGURE
-            Case #GDK_DESTROY
-            Case #GDK_DELETE
-            Case #GDK_EXPOSE
-            Case #GDK_UNMAP
-             
-              gdk_event_handler_set_( 0, 0, 0 )
-            Default
-             
-              gtk_main_do_event_( *Event )
-          EndSelect
-        Else
-          gtk_main_do_event_( *Event )
-        EndIf
-      EndProcedure
-     
-  CompilerEndSelect
-    
-  Procedure SetIDGadget( Gadget )
- ;{ ==Procedure Header Comment==============================
-;        Name/title: SetIDGadget
-;       Description: Part of custom gadget template
-;                  : Required to capture resize events of the gadget canvas
-; ====================================================
-;}    
-    CompilerSelect #PB_Compiler_OS
-        
-      CompilerCase #PB_OS_Windows
-        If GetProp_( GadgetID( Gadget ), "PB_GadgetID" ) = 0
-          ProcedureReturn SetProp_( GadgetID( Gadget ), "PB_GadgetID", Gadget + (1))
-        EndIf
-       
-      CompilerCase #PB_OS_Linux
-        If g_object_get_data_( GadgetID( Gadget ), "PB_GadgetID" ) = 0
-          ProcedureReturn g_object_set_data_( GadgetID( Gadget ), "PB_GadgetID", Gadget + (1))
-        EndIf
-       
-    CompilerEndSelect
-    
-  EndProcedure
-    
-  Procedure ResizeGadgetEvents(Gadget)
-    
-    Protected GadgetID, GadgetID1, GadgetID2, GadgetID3, GadgetID4
-   
-    If IsGadget( Gadget ) 
-      SetIDGadget( Gadget )
-      GadgetID = GadgetID( Gadget )
-     
-      CompilerSelect #PB_Compiler_OS
-          
-        CompilerCase #PB_OS_Linux
-          g_object_set_data_( GadgetID, "PB_GadgetID", Gadget + 1 )
-          g_object_set_data_( GadgetID, "Resize_Event_CallBack", GadgetID )
-          gdk_event_handler_set_( @Resize_CallBack(), GadgetID, 0 )
-         
-        CompilerCase #PB_OS_Windows
-          If GadgetID  And GetProp_( GadgetID,  "Resize_Event_CallBack") = #False
-            SetProp_( GadgetID, "Resize_Event_CallBack", SetWindowLong_(GadgetID, #GWL_WNDPROC, @Resize_CallBack()))
-          EndIf
-         
-      CompilerEndSelect
-      
-    EndIf
-    
-  EndProcedure
-    
   Procedure AddGadget(ThisWindow.i,ThisGadget.i)
  ;{ ==Procedure Header Comment==============================
 ;        Name/title: AddGadget
@@ -267,6 +119,16 @@ Module CustomGadget
    
     SetCurrentGadgetID(EventGadget())
     
+    ;Captures the custom event 15 which means this gadget has been resized or moved
+     If EventData() = 15
+      Debug "Reset"
+      ;Fixed Size Gadget No resize
+      If GadgetHeight(MyGadgetArray(CurrentGadget)\Gadget_ID) <> 32 Or GadgetWidth(MyGadgetArray(CurrentGadget)\Gadget_ID) <> 32
+        ResizeGadget(MyGadgetArray(CurrentGadget)\Gadget_ID,#PB_Ignore,#PB_Ignore,32,32)
+        DrawGadget(MyGadgetArray(CurrentGadget)\Gadget_ID)
+      EndIf
+    EndIf   
+      
     Select EventType()
        
       Case #PB_EventType_MouseEnter
@@ -327,12 +189,6 @@ Module CustomGadget
         
         ;Debug "MiddleButtonUp On Gadget " + Str(CurrentGadget) 
         
-      Case #PB_EventType_Size
-        
-        ;Debug "ReSize On Gadget " + Str(CurrentGadget)          
-        DrawGadget(EventGadget()) ;If Needed after a resize event
-        SendEvents(#CgEvent3) ;Just for testing
-        
       Case    #PB_EventType_Focus
         
         ;Debug "Got Focus On Gadget " + Str(CurrentGadget)   
@@ -364,7 +220,7 @@ Module CustomGadget
 ;                  : procedure to create the canvas used for the gadget
 ; ====================================================
 ;}  
-    Define ThisWindow.i,ThisGadget.i
+    Define ThisWindow.i,ThisGadget.i,ThisColour.i
   
     ;Create The Canvas For The Gadget
     If Gadget = #PB_Any
@@ -376,17 +232,28 @@ Module CustomGadget
   
     ;Bind This Gadgets Events
     BindGadgetEvent(ThisGadget, @GadgetEvents())
-    
+
     ;The Window On Which It Is Created
-    ThisWindow = UseGadgetList(0)
+    ThisWindow = GetActiveWindow()
+    
+    ;Add the window id as data to the gadget
+    SetGadgetData(ThisGadget,ThisWindow)    
     
     ;Add To The Custom Gadget Array
     AddGadget(ThisWindow,ThisGadget)
     
-    SetCurrentGadgetID(ThisGadget)
+    ;Get background colour where gadget will be drawn
+    StartDrawing(WindowOutput(ThisWindow))
+      ThisColour = Point(x, y)
+    StopDrawing()
     
-    ;Add Resize Event
-    ResizeGadgetEvents( ThisGadget )
+    ;Set colour of canvas to background
+    StartDrawing(CanvasOutput(ThisGadget))
+      DrawingMode(#PB_2DDrawing_AllChannels)
+      Box(0, 0, OutputWidth(), OutputHeight(), ThisColour)
+    StopDrawing()     
+    
+    SetCurrentGadgetID(ThisGadget)
     
     ;Draw the actual gadget
     DrawGadget(CurrentGadget)
@@ -413,7 +280,7 @@ Procedure.i CustomGadget(Gadget.i, x.i,y.i,width.i,height.i,Flags.i)
 EndProcedure
 
 ; IDE Options = PureBasic 5.50 (Windows - x64)
-; CursorPosition = 343
-; FirstLine = 83
-; Folding = 0EEV0
+; CursorPosition = 29
+; FirstLine = 4
+; Folding = VAg
 ; EnableXP
